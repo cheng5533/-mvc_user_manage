@@ -315,6 +315,12 @@
         <!-- 分类筛选 -->
         <div class="filters">
             <a th:href="@{/blog}" class="filter-btn" th:classappend="${categoryId == null and keyword == null ? 'active' : ''}">全部</a>
+            <a th:each="cat : ${categories}" 
+               th:if="${cat.name != null and !cat.name.isEmpty() and cat.name != '??'}"
+               th:href="@{/blog(categoryId=${cat.id})}" 
+               th:text="${cat.name}"
+               class="filter-btn"
+               th:classappend="${categoryId == cat.id ? 'active' : ''}"></a>
         </div>
 
         <!-- 搜索栏 -->
