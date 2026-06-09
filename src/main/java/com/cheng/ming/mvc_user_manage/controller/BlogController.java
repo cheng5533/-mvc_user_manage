@@ -95,19 +95,31 @@ public class BlogController {
      */
     @PostMapping("/blog/article/{id}/comment")
     public String addComment(@PathVariable Long id,
-                             @Valid @ModelAttribute Comment comment,
-                             BindingResult result,
+                             @RequestParam String nickname,
+                             @RequestParam(required = false) String email,
+                             @RequestParam String content,
                              RedirectAttributes redirectAttributes,
                              HttpServletRequest request) {
-        if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("commentError", "请填写昵称和评论内容");
+        // 验证必填字段
+        if (nickname == null || nickname.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("commentError", "请填写昵称");
+            return "redirect:/blog/article/" + id;
+        }
+        if (content == null || content.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("commentError", "请填写评论内容");
             return "redirect:/blog/article/" + id;
         }
 
         Article article = articleService.findById(id)
                 .orElseThrow(() -> new RuntimeException("文章不存在"));
 
+        // 创建新的评论对象(确保是INSERT而不是UPDATE)
+        Comment comment = new Comment();
         comment.setArticle(article);
+        comment.setNickname(nickname.trim());
+        comment.setEmail(email != null ? email.trim() : null);
+        comment.setContent(content.trim());
+        
         // 获取访客IP
         String ip = request.getRemoteAddr();
         comment.setIpAddress(ip);
