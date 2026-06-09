@@ -47,8 +47,8 @@ public class Article {
     private Integer viewCount = 0; // 阅读量
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author; // 作者
+    @JoinColumn(name = "author_id", nullable = true)
+    private User author; // 作者(可为空,支持游客发布)
 
     @Column(nullable = false)
     private Integer status = 1; // 状态：1-发布，0-草稿
