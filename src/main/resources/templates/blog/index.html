@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人博客</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fafafa; color: #333; line-height: 1.6; }
+        
+        /* 导航栏 - 参考Medium简洁风格 */
+        .navbar { 
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 0 20px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+        .nav-inner { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .nav-brand { 
+            color: #333; 
+            font-size: 24px; 
+            font-weight: 700; 
+            text-decoration: none; 
+            letter-spacing: -0.5px;
+        }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { 
+            color: #666; 
+            text-decoration: none; 
+            font-size: 15px; 
+            padding: 8px 16px; 
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .nav-links a:hover { 
+            background: #f0f2f5;
+            color: #333;
+        }
+
+        /* 主体布局 - 单列居中，更专注阅读 */
+        .main { 
+            max-width: 1000px; 
+            margin: 40px auto; 
+            padding: 0 20px; 
+        }
+        
+        /* 搜索栏 */
+        .search-bar { 
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .search-bar form { 
+            width: 100%;
+            max-width: 600px;
+            display: flex; 
+            gap: 10px; 
+        }
+        .search-bar input { 
+            flex: 1; 
+            padding: 12px 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 25px; 
+            font-size: 15px; 
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-bar input:focus { 
+            border-color: #667eea; 
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1); 
+        }
+        .search-bar button { 
+            padding: 12px 30px; 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .search-bar button:hover {
+            background: #5a6fd6;
+        }
+
+        /* 文章卡片 - 参考Medium极简设计 */
+        .article-card { 
+            background: white; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            margin-bottom: 30px; 
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
+            transition: all 0.3s;
+            border: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+        .article-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            border-color: #e0e0e0;
+        }
+        .article-cover-container {
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+        .article-cover { 
+            width: 100%; 
+            display: block;
+            object-fit: contain;
+            max-height: 400px;
+        }
+        .article-meta { 
+            display: flex; 
+            gap: 15px; 
+            font-size: 13px; 
+            color: #999; 
+            margin-bottom: 12px; 
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .article-meta span { 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        .category-tag {
+            background: #f0f2f5;
+            color: #666;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .article-title { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .article-title a { 
+            color: #333; 
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .article-title a:hover { 
+            color: #667eea; 
+        }
+        .article-excerpt { 
+            color: #666; 
+            font-size: 15px; 
+            line-height: 1.8; 
+            margin-bottom: 15px; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 3; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden;
+        }
+        .article-tags { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            margin-top: 15px;
+        }
+        .tag { 
+            background: #f0f2f5; 
+            color: #667eea; 
+            padding: 4px 12px; 
+            border-radius: 12px; 
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* 分类和标签区域 - 简化侧边栏 */
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* 分页 */
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-top: 40px; 
+        }
+        .pagination a, .pagination span { 
+            padding: 10px 18px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            color: #666; 
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .pagination a:hover {
+            background: #f0f2f5;
+        }
+        .pagination .active { 
+            background: #667eea; 
+            color: white; 
+            border-color: #667eea; 
+        }
+
+        /* 空状态 */
+        .empty { 
+            text-align: center; 
+            padding: 80px 20px; 
+            color: #999; 
+        }
+        .empty-icon { 
+            font-size: 80px; 
+            margin-bottom: 20px; 
+            opacity: 0.5;
+        }
+        .empty p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .empty-hint {
+            font-size: 14px;
+            color: #bbb;
+        }
+
+        /* 底部 */
+        .footer { 
+            text-align: center; 
+            padding: 40px 20px; 
+            color: #999; 
+            font-size: 13px;
+            border-top: 1px solid #e8e8e8;
+            margin-top: 60px;
+        }
+
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            .main { 
+                margin: 20px auto; 
+                padding: 0 15px; 
+            }
+            .article-card {
+                padding: 20px;
+            }
+            .article-cover-container {
+                margin-bottom: 15px;
+            }
+            .article-cover { 
+                max-height: 250px; 
+            }
+            .article-title { 
+                font-size: 20px; 
+            }
+            .nav-brand { 
+                font-size: 20px; 
+            }
+            .nav-links { 
+                gap: 15px; 
+            }
+            .nav-links a { 
+                font-size: 14px; 
+                padding: 6px 12px; 
+            }
+            .filters {
+                gap: 8px;
+            }
+            .filter-btn {
+                padding: 6px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/blog" class="nav-brand">My Blog</a>
+            <div class="nav-links">
+                <a th:href="@{/blog}">首页</a>
+                <a th:href="@{/blog/write}">写文章</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <!-- 分类筛选 -->
+        <div class="filters">
+            <a th:href="@{/blog}" class="filter-btn" th:classappend="${categoryId == null and keyword == null ? 'active' : ''}">全部</a>
+            <a th:each="cat : ${categories}" 
+               th:href="@{/blog(categoryId=${cat.id})}" 
+               th:text="${cat.name}"
+               class="filter-btn"
+               th:classappend="${categoryId == cat.id ? 'active' : ''}"></a>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+            <form th:action="@{/blog}" method="get">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="搜索文章...">
+                <button type="submit">搜索</button>
+            </form>
+        </div>
+
+        <!-- 文章列表 -->
+        <div th:each="article : ${articlePage.content}" class="article-card">
+            <a th:href="@{/blog/article/{id}(id=${article.id})}" style="display:block; text-decoration:none; color:inherit;">
+                <div class="article-meta">
+                    <span th:if="${article.category != null}" class="category-tag" th:text="${article.category.name}"></span>
+                    <span th:text="' ' + ${#temporals.format(article.createTime, 'yyyy-MM-dd')}"></span>
+                    <span th:text="'👁 ' + ${article.viewCount}"></span>
+                </div>
+                
+                <h2 class="article-title">
+                    <span th:text="${article.title}">文章标题</span>
+                </h2>
+                
+                <p class="article-excerpt" th:text="${#strings.abbreviate(article.content, 200)}">文章摘要...</p>
+                
+                <div class="article-tags" th:if="${article.tags != null and !article.tags.isEmpty()}">
+                    <span class="tag" th:each="tag : ${article.tags}" th:text="${tag.name}">标签</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- 空状态 -->
+        <div th:if="${articlePage.content.isEmpty()}" class="empty">
+            <div class="empty-icon">📝</div>
+            <p>还没有文章哦</p>
+            <p class="empty-hint">快去发布第一篇吧！</p>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}" th:href="@{/blog(page=${currentPage - 1}, keyword=${keyword}, categoryId=${categoryId})}">上一页</a>
+            <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
+                <a th:unless="${i == currentPage}" th:href="@{/blog(page=${i}, keyword=${keyword}, categoryId=${categoryId})}" th:text="${i + 1}"></a>
+            </th:block>
+            <a th:if="${currentPage < totalPages - 1}" th:href="@{/blog(page=${currentPage + 1}, keyword=${keyword}, categoryId=${categoryId})}">下一页</a>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <p>Powered by Spring Boot | My Personal Blog &copy; 2024</p>
+    </div>
+</body>
+</html>

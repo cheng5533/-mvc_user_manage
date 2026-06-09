@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理系统 - 用户列表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Microsoft YaHei", Arial, sans-serif; background: #f5f7fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .navbar h1 { font-size: 20px; }
+        .navbar .user-info a { color: white; text-decoration: none; margin-left: 15px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .search-form { display: flex; gap: 10px; }
+        .search-form input { padding: 8px 15px; border: 1px solid #ddd; border-radius: 5px; width: 250px; }
+        .btn { padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn:hover { opacity: 0.85; }
+        .message { background: #d4edda; color: #155724; padding: 12px 20px; border-radius: 5px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        tr:hover { background: #f8f9fa; }
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
+        .pagination a, .pagination span { padding: 8px 14px; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; color: #333; }
+        .pagination .active { background: #667eea; color: white; border-color: #667eea; }
+        .stats { color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>用户管理系统</h1>
+        <div class="user-info">
+            <span th:text="'欢迎, ' + ${session.loginUser.name}"></span>
+            <a th:href="@{/logout}">退出登录</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 操作提示 -->
+        <div class="message" th:if="${message}" th:text="${message}"></div>
+
+        <!-- 工具栏 -->
+        <div class="toolbar">
+            <form class="search-form" th:action="@{/user/list}" method="get">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="搜索用户名或姓名...">
+                <button type="submit" class="btn btn-primary">搜索</button>
+            </form>
+            <div>
+                <span class="stats" th:text="'共 ' + ${totalItems} + ' 条记录'"></span>
+                <!-- 只有管理员可以看到新增按钮 -->
+                <a th:if="${session.loginUser.role == '管理员'}" 
+                   th:href="@{/user/add}" class="btn btn-success" style="margin-left: 15px;">+ 新增用户</a>
+            </div>
+        </div>
+
+        <!-- 用户列表 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>姓名</th>
+                    <th>邮箱</th>
+                    <th>电话</th>
+                    <th>角色</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${userPage.content}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.name}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.phone}"></td>
+                    <td th:text="${user.role}"></td>
+                    <td th:text="${#temporals.format(user.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <a th:href="@{/user/edit/{id}(id=${user.id})}" class="btn btn-warning">编辑</a>
+                        <!-- 只有管理员可以看到删除按钮 -->
+                        <a th:if="${session.loginUser.role == '管理员'}" 
+                           th:href="@{/user/delete/{id}(id=${user.id})}" class="btn btn-danger"
+                           onclick="return confirm('确定要删除该用户吗？')">删除</a>
+                    </td>
+                </tr>
+                <tr th:if="${userPage.content.isEmpty()}">
+                    <td colspan="8" style="text-align: center; padding: 30px;">暂无数据</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 分页 -->
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}" th:href="@{/user/list(page=${currentPage - 1}, keyword=${keyword})}">上一页</a>
+            <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
+                <a th:unless="${i == currentPage}" th:href="@{/user/list(page=${i}, keyword=${keyword})}" th:text="${i + 1}"></a>
+            </th:block>
+            <a th:if="${currentPage < totalPages - 1}" th:href="@{/user/list(page=${currentPage + 1}, keyword=${keyword})}">下一页</a>
+        </div>
+    </div>
+</body>
+</html>

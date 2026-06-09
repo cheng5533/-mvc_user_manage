@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${article.title} + ' - My Blog'">文章详情</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; line-height: 1.8; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 60px; }
+        .nav-brand { color: white; font-size: 22px; font-weight: 700; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 14px; padding: 8px 12px; border-radius: 5px; }
+        .nav-links a:hover { background: rgba(255,255,255,0.15); }
+
+        .article-container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+
+        /* 文章主体 */
+        .article-card { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px; }
+        .article-title { font-size: 28px; font-weight: 700; margin-bottom: 15px; line-height: 1.4; }
+        .article-meta { display: flex; gap: 20px; color: #999; font-size: 14px; margin-bottom: 30px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .article-content { font-size: 16px; line-height: 2; color: #444; white-space: pre-wrap; word-wrap: break-word; }
+        .article-content img { max-width: 100%; border-radius: 8px; margin: 15px 0; }
+        .article-tags { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { background: #f0f2f5; color: #667eea; padding: 4px 12px; border-radius: 12px; font-size: 13px; }
+
+        /* 点赞区域 */
+        .like-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        .like-btn {
+            background: none;
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .like-btn:hover {
+            background: #e74c3c;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(231,76,60,0.3);
+        }
+        .like-btn.liked {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* 评论区 */
+        .comment-section { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 30px; }
+        .comment-section h3 { font-size: 18px; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+        .comment-item { padding: 15px 0; border-bottom: 1px solid #f0f2f5; }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .comment-nickname { font-weight: 600; color: #333; font-size: 14px; }
+        .comment-time { color: #999; font-size: 12px; }
+        .comment-content { color: #555; font-size: 14px; line-height: 1.8; }
+        .comment-email { color: #999; font-size: 12px; margin-left: 10px; }
+
+        /* 评论表单 */
+        .comment-form { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .comment-form h3 { font-size: 18px; margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #555; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .btn-submit { padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+        .btn-submit:hover { background: #5a6fd6; }
+        .btn-back { display: inline-block; padding: 10px 25px; background: #95a5a6; color: white; text-decoration: none; border-radius: 8px; font-size: 14px; margin-right: 10px; }
+
+        .alert { padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+
+        .empty-comments { text-align: center; padding: 30px; color: #999; }
+
+        .footer { text-align: center; padding: 30px; color: #999; font-size: 13px; }
+
+        @media (max-width: 768px) {
+            .article-card { padding: 20px; }
+            .article-title { font-size: 22px; }
+            .form-row { grid-template-columns: 1fr; }
+            .nav-brand { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/blog" class="nav-brand">My Blog</a>
+            <div class="nav-links">
+                <a th:href="@{/blog}">首页</a>
+                <a th:href="@{/blog/write}">写文章</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="article-container">
+        <!-- 文章主体 -->
+        <div class="article-card">
+            <h1 class="article-title" th:text="${article.title}">文章标题</h1>
+            <div class="article-meta">
+                <span th:if="${article.author != null}" th:text="'✍ ' + ${article.author.name}"></span>
+                <span th:if="${article.category != null}" th:text="' ' + ${article.category.name}"></span>
+                <span th:text="' ' + ${#temporals.format(article.createTime, 'yyyy-MM-dd HH:mm')}"></span>
+                <span th:text="' 阅读 ' + ${article.viewCount}"></span>
+                <span th:text="'💬 评论 ' + ${commentCount}"></span>
+            </div>
+            <div class="article-content" th:text="${article.content}">文章内容</div>
+            <div class="article-tags" th:if="${article.tags != null and !article.tags.isEmpty()}">
+                <span class="tag" th:each="tag : ${article.tags}" th:text="'# ' + ${tag.name}">标签</span>
+            </div>
+            
+            <!-- 点赞区域 -->
+            <div class="like-section">
+                <button onclick="toggleLike()" id="likeBtn" class="like-btn">
+                    ❤️ <span id="likeCount">加载中...</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 评论区 -->
+        <div class="comment-section">
+            <h3 th:text="'评论 (' + ${commentCount} + ')'">评论</h3>
+
+            <div th:if="${commentSuccess}" class="alert alert-success" th:text="${commentSuccess}"></div>
+            <div th:if="${commentError}" class="alert alert-error" th:text="${commentError}"></div>
+
+            <div th:if="${comments.isEmpty()}" class="empty-comments">
+                <p>还没有评论，来说两句吧~</p>
+            </div>
+
+            <div th:each="c : ${comments}" class="comment-item">
+                <div class="comment-header">
+                    <div>
+                        <span class="comment-nickname" th:text="${c.nickname}">昵称</span>
+                        <span class="comment-email" th:if="${c.email != null and !c.email.isEmpty()}" th:text="${c.email}"></span>
+                    </div>
+                    <span class="comment-time" th:text="${#temporals.format(c.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                </div>
+                <div class="comment-content" th:text="${c.content}">评论内容</div>
+            </div>
+        </div>
+
+        <!-- 发表评论（游客无需登录） -->
+        <div class="comment-form">
+            <h3>发表评论</h3>
+            <p style="color:#999; font-size:13px; margin-bottom:15px;">无需注册，填写昵称即可评论</p>
+            <form th:action="@{/blog/article/{id}/comment(id=${article.id})}" method="post" th:object="${comment}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>昵称 <span style="color:red">*</span></label>
+                        <input type="text" name="nickname" placeholder="你的昵称" required maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱（选填）</label>
+                        <input type="email" name="email" placeholder="your@email.com" maxlength="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>评论内容 <span style="color:red">*</span></label>
+                    <textarea name="content" placeholder="说点什么吧..." required maxlength="1000"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">发表评论</button>
+            </form>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a th:href="@{/blog}" class="btn-back">← 返回首页</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Spring Boot | My Personal Blog &copy; 2024</p>
+    </div>
+
+    <script>
+        // 加载点赞数
+        fetch('/blog/article/[[${article.id}]]/like-count')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('likeCount').textContent = data.likeCount || 0;
+            });
+
+        // 点赞功能
+        function toggleLike() {
+            fetch('/blog/article/[[${article.id}]]/like', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('likeCount').textContent = data.likeCount;
+                if (data.success) {
+                    alert('点赞成功！');
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error('点赞失败:', err);
+                alert('点赞失败，请稍后重试');
+            });
+        }
+    </script>
+</body>
+</html>

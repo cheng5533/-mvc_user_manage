@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>写文章 - My Blog</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fafafa; color: #333; line-height: 1.6; }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 20px; font-weight: 600; text-decoration: none; color: #333; }
+        .nav a { color: #666; text-decoration: none; margin-left: 20px; font-size: 14px; }
+        .nav a:hover { color: #333; }
+        
+        .main { padding: 40px 20px; }
+        .form-container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        h2 { 
+            font-size: 28px; 
+            margin-bottom: 30px; 
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group { margin-bottom: 25px; }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #555; 
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        .form-group textarea { 
+            min-height: 400px; 
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.8;
+        }
+        .hint { font-size: 13px; color: #999; margin-top: 5px; }
+        
+        /* 快捷标签 */
+        .quick-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .quick-tag {
+            padding: 6px 14px;
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .quick-tag:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .quick-tag.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover { 
+            background: #5a6fd6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+        .btn-default {
+            background: #f0f0f0;
+            color: #666;
+            margin-left: 10px;
+        }
+        .btn-default:hover { background: #e0e0e0; }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 0 15px; }
+            .form-container { padding: 25px 20px; }
+            h2 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/blog" class="logo">My Blog</a>
+                <div class="nav">
+                    <a href="/blog">首页</a>
+                    <a href="/blog/write">写文章</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main">
+        <div class="container">
+            <div class="form-container">
+                <h2>✍️ 写文章</h2>
+                
+                <!-- 错误提示 -->
+                <div th:if="${writeError}" class="alert alert-danger" th:text="${writeError}"></div>
+                <div th:if="${writeSuccess}" class="alert alert-success" th:text="${writeSuccess}"></div>
+                
+                <form th:action="@{/blog/write}" method="post" th:object="${article}">
+                    <div class="form-group">
+                        <label>标题 *</label>
+                        <input type="text" th:field="*{title}" placeholder="输入一个吸引人的标题" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>分类</label>
+                        <select name="categoryId">
+                            <option value="">选择分类（可选）</option>
+                            <option th:each="cat : ${categories}" 
+                                    th:value="${cat.id}" 
+                                    th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>标签</label>
+                        <input type="text" id="tagInput" name="tagNames" placeholder="输入标签，用逗号分隔">
+                        <div class="hint">点击下方快捷标签，或手动输入</div>
+                        
+                        <!-- 快捷标签选择 -->
+                        <div class="quick-tags">
+                            <span class="quick-tag" data-tag="Java">Java</span>
+                            <span class="quick-tag" data-tag="Spring Boot">Spring Boot</span>
+                            <span class="quick-tag" data-tag="前端">前端</span>
+                            <span class="quick-tag" data-tag="MySQL">MySQL</span>
+                            <span class="quick-tag" data-tag="学习笔记">学习笔记</span>
+                            <span class="quick-tag" data-tag="日常">日常</span>
+                            <span class="quick-tag" data-tag="随笔">随笔</span>
+                            <span class="quick-tag" data-tag="旅行">旅行</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>内容 *</label>
+                        <textarea th:field="*{content}" placeholder="在这里写下你的文章内容..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">发布文章</button>
+                        <a href="/blog" class="btn btn-default">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 文章发布成功提示
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            alert('文章发布成功！');
+        }
+
+        // 快捷标签功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const tagInput = document.getElementById('tagInput');
+            const quickTags = document.querySelectorAll('.quick-tag');
+            
+            // 存储已选择的标签
+            let selectedTags = new Set();
+            
+            // 点击快捷标签
+            quickTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const tagName = this.getAttribute('data-tag');
+                    
+                    if (selectedTags.has(tagName)) {
+                        // 取消选择
+                        selectedTags.delete(tagName);
+                        this.classList.remove('active');
+                    } else {
+                        // 添加选择
+                        selectedTags.add(tagName);
+                        this.classList.add('active');
+                    }
+                    
+                    // 更新输入框
+                    tagInput.value = Array.from(selectedTags).join(', ');
+                });
+            });
+            
+            // 手动输入时也解析标签
+            tagInput.addEventListener('input', function() {
+                const tags = this.value.split(/[,，]/).map(t => t.trim()).filter(t => t);
+                selectedTags.clear();
+                tags.forEach(tag => selectedTags.add(tag));
+                
+                // 更新按钮状态
+                quickTags.forEach(btn => {
+                    const btnTag = btn.getAttribute('data-tag');
+                    if (selectedTags.has(btnTag)) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 文章列表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; background: #f0f2f5; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 60px; color: white; }
+        .nav-inner h1 { font-size: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 5px; }
+        .nav-links a:hover { background: rgba(255,255,255,0.15); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stats { color: #888; font-size: 14px; }
+        .btn { padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-info { background: #3498db; color: white; }
+        .btn:hover { opacity: 0.85; }
+        .message { background: #d4edda; color: #155724; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; font-weight: 600; color: #555; }
+        tr:hover { background: #f8f9fa; }
+        .status-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .status-published { background: #d4edda; color: #155724; }
+        .status-draft { background: #fff3cd; color: #856404; }
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; }
+        .pagination a, .pagination span { padding: 8px 14px; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; color: #333; }
+        .pagination .active { background: #667eea; color: white; border-color: #667eea; }
+        .action-btns { display: flex; gap: 5px; }
+        @media (max-width: 768px) {
+            table { font-size: 12px; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-inner">
+            <h1>后台管理</h1>
+            <div class="nav-links">
+                <a th:href="@{/blog}">查看博客</a>
+                <a th:href="@{/admin/category/list}">分类管理</a>
+                <a th:href="@{/user/list}">用户管理</a>
+                <a th:href="@{/logout}">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="message" th:if="${message}" th:text="${message}"></div>
+
+        <div class="toolbar">
+            <span class="stats" th:text="'共 ' + ${totalItems} + ' 篇文章'"></span>
+            <a th:href="@{/admin/article/add}" class="btn btn-primary">+ 写文章</a>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>标题</th>
+                    <th>分类</th>
+                    <th>状态</th>
+                    <th>阅读量</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="article : ${articlePage.content}">
+                    <td th:text="${article.id}"></td>
+                    <td>
+                        <a th:href="@{/blog/article/{id}(id=${article.id})}" th:text="${article.title}" style="color:#333; text-decoration:none;">标题</a>
+                    </td>
+                    <td th:text="${article.category != null ? article.category.name : '未分类'}"></td>
+                    <td>
+                        <span th:if="${article.status == 1}" class="status-badge status-published">已发布</span>
+                        <span th:unless="${article.status == 1}" class="status-badge status-draft">草稿</span>
+                    </td>
+                    <td th:text="${article.viewCount}"></td>
+                    <td th:text="${#temporals.format(article.createTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <div class="action-btns">
+                            <a th:href="@{/admin/article/edit/{id}(id=${article.id})}" class="btn btn-warning">编辑</a>
+                            <a th:href="@{/admin/article/delete/{id}(id=${article.id})}" class="btn btn-danger"
+                               onclick="return confirm('确定要删除这篇文章吗？')">删除</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${articlePage.content.isEmpty()}">
+                    <td colspan="7" style="text-align:center; padding:30px; color:#999;">暂无文章</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" th:if="${totalPages > 1}">
+            <a th:if="${currentPage > 0}" th:href="@{/admin/article/list(page=${currentPage - 1})}">上一页</a>
+            <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
+                <a th:unless="${i == currentPage}" th:href="@{/admin/article/list(page=${i})}" th:text="${i + 1}"></a>
+            </th:block>
+            <a th:if="${currentPage < totalPages - 1}" th:href="@{/admin/article/list(page=${currentPage + 1})}">下一页</a>
+        </div>
+    </div>
+</body>
+</html>

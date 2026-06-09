@@ -1,0 +1,1 @@
+web: java -jar target/mvc_user_manage-1.0-SNAPSHOT.jar
