@@ -56,6 +56,15 @@ public class Comment {
         }
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        // 更新时保留原有的 create_time,只更新 updateTime(如果有)
+        // 确保 create_time 不会被设置为 null
+        if (this.createTime == null) {
+            this.createTime = LocalDateTime.now();
+        }
+    }
+
     // Getters and Setters
 
     public Long getId() {
