@@ -3,6 +3,8 @@ package com.cheng.ming.mvc_user_manage.service;
 import com.cheng.ming.mvc_user_manage.entity.User;
 import com.cheng.ming.mvc_user_manage.repository.UserRepository;
 import com.cheng.ming.mvc_user_manage.util.PasswordUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +19,8 @@ import java.util.Optional;
  */
 @Service
 public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
