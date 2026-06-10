@@ -14,6 +14,7 @@ import java.util.Optional;
 
 /**
  * 用户业务逻辑层
+ * 修复版本: 移除错误的日志代码,恢复原始正常工作代码
  */
 @Service
 public class UserService {
