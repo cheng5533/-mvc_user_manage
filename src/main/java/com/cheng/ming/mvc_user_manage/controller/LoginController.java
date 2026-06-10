@@ -105,10 +105,17 @@ public class LoginController {
     }
 
     /**
-     * 首页重定向到博客
+     * 首页 - 根据登录状态重定向
      */
     @GetMapping("/")
-    public String index() {
-        return "redirect:/blog";
+    public String index(HttpSession session) {
+        // 检查是否已登录
+        if (session.getAttribute("loginUser") != null) {
+            // 已登录，跳转到博客首页
+            return "redirect:/blog";
+        } else {
+            // 未登录，跳转到登录页面
+            return "redirect:/login";
+        }
     }
 }

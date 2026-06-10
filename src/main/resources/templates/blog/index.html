@@ -307,6 +307,16 @@
             <div class="nav-links">
                 <a th:href="@{/blog}">首页</a>
                 <a th:href="@{/blog/write}">写文章</a>
+                <!-- 未登录用户显示登录/注册链接 -->
+                <th:block th:if="${session.loginUser == null}">
+                    <a th:href="@{/login}" style="color: #667eea;">登录</a>
+                    <a th:href="@{/register}" style="background: #667eea; color: white;">注册</a>
+                </th:block>
+                <!-- 已登录用户显示用户名和退出 -->
+                <th:block th:if="${session.loginUser != null}">
+                    <span style="color: #666; font-size: 14px;" th:text="'👤 ' + ${session.loginUser.name}"></span>
+                    <a th:href="@{/logout}" style="color: #e74c3c;">退出</a>
+                </th:block>
             </div>
         </div>
     </nav>
