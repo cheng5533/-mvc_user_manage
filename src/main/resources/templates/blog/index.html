@@ -314,6 +314,10 @@
                 </th:block>
                 <!-- 已登录用户显示用户名和退出 -->
                 <th:block th:if="${session.loginUser != null}">
+                    <!-- 管理员显示后台管理入口 -->
+                    <a th:if="${session.loginUser.role == '管理员'}" 
+                       th:href="@{/admin/article/list}" 
+                       style="color: #e74c3c; font-weight: 600;">🔧 后台管理</a>
                     <span style="color: #666; font-size: 14px;" th:text="'👤 ' + ${session.loginUser.name}"></span>
                     <a th:href="@{/logout}" style="color: #e74c3c;">退出</a>
                 </th:block>
