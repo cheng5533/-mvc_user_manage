@@ -84,9 +84,27 @@ public class UserService {
      * 用户登录验证 - 使用 BCrypt 验证密码
      */
     public Optional<User> login(String username, String password) {
+        logger.info("尝试登录 - 用户名: {}", username);
         Optional<User> user = userRepository.findByUsername(username);
-        if (user.isPresent() && passwordUtil.matches(password, user.get().getPassword())) {
+        if (user.isEmpty()) {
+            logger.warn("用户不存在: {}", username);
+            return Optional.empty();
+        }
+        
+        User foundUser = user.get();
+        logger.info("找到用户 - ID: {}, 用户名: {}, 密码哈希长度: {}", 
+            foundUser.getId(), foundUser.getUsername(), 
+            foundUser.getPassword() != null ? foundUser.getPassword().length() : 0);
+        
+        boolean matches = passwordUtil.matches(password, foundUser.getPassword());
+        logger.info("密码验证结果: {}", matches);
+        
+        if (matches) {
+            logger.info("登录成功: {}", username);
             return user;
+        } else {
+            logger.warn("密码错误 - 输入密码: {}, 数据库哈希: {}", 
+                password, foundUser.getPassword());
         }
         return Optional.empty();
     }
