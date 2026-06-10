@@ -82,9 +82,18 @@ public class LoginController {
                         Model model, HttpSession session) {
         Optional<User> user = userService.login(username, password);
         if (user.isPresent()) {
-            session.setAttribute("loginUser", user.get());
+            User loginUser = user.get();
+            session.setAttribute("loginUser", loginUser);
             logger.info("用户登录成功：{}", username);
-            return "redirect:/blog";
+            
+            // 根据用户角色决定跳转页面
+            if ("管理员".equals(loginUser.getRole())) {
+                // 管理员跳转到后台管理页面
+                return "redirect:/admin/article/list";
+            } else {
+                // 普通用户跳转到博客首页
+                return "redirect:/blog";
+            }
         }
         logger.warn("用户登录失败：{}", username);
         model.addAttribute("error", "用户名或密码错误");
@@ -105,14 +114,21 @@ public class LoginController {
     }
 
     /**
-     * 首页 - 根据登录状态重定向
+     * 首页 - 根据登录状态和角色重定向
      */
     @GetMapping("/")
     public String index(HttpSession session) {
         // 检查是否已登录
-        if (session.getAttribute("loginUser") != null) {
-            // 已登录，跳转到博客首页
-            return "redirect:/blog";
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser != null) {
+            // 已登录，根据角色跳转
+            if ("管理员".equals(loginUser.getRole())) {
+                // 管理员跳转到后台管理页面
+                return "redirect:/admin/article/list";
+            } else {
+                // 普通用户跳转到博客首页
+                return "redirect:/blog";
+            }
         } else {
             // 未登录，跳转到登录页面
             return "redirect:/login";
