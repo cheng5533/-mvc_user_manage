@@ -24,3 +24,8 @@ spring:
   # Thymeleaf配置
   thymeleaf:
     cache: false
+    # 进入应用目录
+    cd /app
+
+    # 查看当前 UserService.java 文件
+    cat src/main/java/com/cheng/ming/mvc_user_manage/service/UserService.java | head -30
